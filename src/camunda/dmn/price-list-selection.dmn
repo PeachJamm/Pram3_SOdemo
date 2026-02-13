@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" 
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" 
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" 
+             id="price-list-selection-dmn" 
+             name="Price List Selection" 
+             namespace="http://pram3.io/dmn/price-list">
+  
+  <decision id="select-price-list" name="选择价格表">
+    <decisionTable id="price-list-table" hitPolicy="FIRST">
+      <input id="input-customer-tier" label="客户等级">
+        <inputExpression id="input-expression-tier" typeRef="string">
+          <text>customerTier</text>
+        </inputExpression>
+      </input>
+      
+      <input id="input-customer-type" label="客户类型">
+        <inputExpression id="input-expression-type" typeRef="string">
+          <text>customerType</text>
+        </inputExpression>
+      </input>
+      
+      <input id="input-order-history" label="历史订单数">
+        <inputExpression id="input-expression-history" typeRef="integer">
+          <text>orderHistoryCount</text>
+        </inputExpression>
+      </input>
+      
+      <output id="output-price-list-id" label="价格表ID" name="priceListId" typeRef="string" />
+      <output id="output-price-list-code" label="价格表代码" name="priceListCode" typeRef="string" />
+      <output id="output-price-list-name" label="价格表名称" name="priceListName" typeRef="string" />
+      <output id="output-discount-tier" label="折扣等级" name="discountTier" typeRef="string" />
+      
+      <!-- VIP客户：使用VIP价格表 -->
+      <rule id="rule-vip">
+        <description>VIP客户使用VIP价格表</description>
+        <inputEntry id="entry-vip-tier">
+          <text>"VIP"</text>
+        </inputEntry>
+        <inputEntry id="entry-vip-type">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-vip-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-vip-id">
+          <text>"pl-003"</text>
+        </outputEntry>
+        <outputEntry id="output-vip-code">
+          <text>"VIP"</text>
+        </outputEntry>
+        <outputEntry id="output-vip-name">
+          <text>"VIP客户价格表"</text>
+        </outputEntry>
+        <outputEntry id="output-vip-tier">
+          <text>"TIER_3"</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 企业客户：使用金牌价格表 -->
+      <rule id="rule-enterprise">
+        <description>企业客户使用金牌价格表</description>
+        <inputEntry id="entry-enterprise-tier">
+          <text>"ENTERPRISE"</text>
+        </inputEntry>
+        <inputEntry id="entry-enterprise-type">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-enterprise-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-enterprise-id">
+          <text>"pl-002"</text>
+        </outputEntry>
+        <outputEntry id="output-enterprise-code">
+          <text>"GOLD"</text>
+        </outputEntry>
+        <outputEntry id="output-enterprise-name">
+          <text>"金牌客户价格表"</text>
+        </outputEntry>
+        <outputEntry id="output-enterprise-tier">
+          <text>"TIER_2"</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 金牌客户：使用金牌价格表 -->
+      <rule id="rule-gold">
+        <description>金牌客户使用金牌价格表</description>
+        <inputEntry id="entry-gold-tier">
+          <text>"GOLD"</text>
+        </inputEntry>
+        <inputEntry id="entry-gold-type">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-gold-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-gold-id">
+          <text>"pl-002"</text>
+        </outputEntry>
+        <outputEntry id="output-gold-code">
+          <text>"GOLD"</text>
+        </outputEntry>
+        <outputEntry id="output-gold-name">
+          <text>"金牌客户价格表"</text>
+        </outputEntry>
+        <outputEntry id="output-gold-tier">
+          <text>"TIER_2"</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 高价值标准客户（订单数>=10）：使用金牌价格表 -->
+      <rule id="rule-loyal-standard">
+        <description>高忠诚度标准客户升级为金牌价格</description>
+        <inputEntry id="entry-loyal-tier">
+          <text>"STANDARD"</text>
+        </inputEntry>
+        <inputEntry id="entry-loyal-type">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-loyal-history">
+          <text>&gt;= 10</text>
+        </inputEntry>
+        <outputEntry id="output-loyal-id">
+          <text>"pl-002"</text>
+        </outputEntry>
+        <outputEntry id="output-loyal-code">
+          <text>"GOLD"</text>
+        </outputEntry>
+        <outputEntry id="output-loyal-name">
+          <text>"金牌客户价格表"</text>
+        </outputEntry>
+        <outputEntry id="output-loyal-tier">
+          <text>"TIER_2"</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 默认：标准价格表 -->
+      <rule id="rule-standard">
+        <description>默认使用标准价格表</description>
+        <inputEntry id="entry-standard-tier">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-standard-type">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-standard-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-standard-id">
+          <text>"pl-001"</text>
+        </outputEntry>
+        <outputEntry id="output-standard-code">
+          <text>"STANDARD"</text>
+        </outputEntry>
+        <outputEntry id="output-standard-name">
+          <text>"标准价格表"</text>
+        </outputEntry>
+        <outputEntry id="output-standard-tier">
+          <text>"TIER_1"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNShape id="DMNShape_1" dmnElementRef="select-price-list">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
+             xmlns:camunda="http://camunda.org/schema/1.0/dmn"
+             id="definitions_select_price_list"
+             name="选择价格表"
+             namespace="http://pram3.io/dmn/price-list">
+  <decision id="select-price-list" name="选择价格表" camunda:versionTag="1">
+    <decisionTable id="DecisionTable_1" hitPolicy="FIRST">
+      <input id="Input_1" label="客户等级">
+        <inputExpression id="InputExpression_1" typeRef="string">
+          <text>customerTier</text>
+        </inputExpression>
+      </input>
+      <input id="Input_2" label="历史订单数">
+        <inputExpression id="InputExpression_2" typeRef="integer">
+          <text>orderHistoryCount</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="价格表ID" name="priceListId" typeRef="string" />
+      <output id="Output_2" label="价格表代码" name="priceListCode" typeRef="string" />
+      <rule id="DecisionRule_1">
+        <inputEntry id="UnaryTests_1">
+          <text>"VIP"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_2">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1">
+          <text>"pl-003"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_2">
+          <text>"VIP"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_2">
+        <inputEntry id="UnaryTests_3">
+          <text>"ENTERPRISE"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_4">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_3">
+          <text>"pl-002"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_4">
+          <text>"GOLD"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_3">
+        <inputEntry id="UnaryTests_5">
+          <text>"GOLD"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_6">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_5">
+          <text>"pl-002"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_6">
+          <text>"GOLD"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_4">
+        <inputEntry id="UnaryTests_7">
+          <text>"STANDARD"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_8">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_7">
+          <text>"pl-001"</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_8">
+          <text>"STANDARD"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNShape id="DMNShape_1" dmnElementRef="select-price-list">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

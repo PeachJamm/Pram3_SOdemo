@@ -1,0 +1,488 @@
+/* =====================================================
+   PRAM3 ERP Frontend - SO SPA Styles
+   前端样式定义
+   ===================================================== */
+
+/* 基础样式 */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+/* SO SPA容器 */
+.so-spa {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 顶部状态栏 */
+.so-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.so-id {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.so-status {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-draft { background: #e3f2fd; color: #1976d2; }
+.status-pending_approval { background: #fff3e0; color: #f57c00; }
+.status-approved { background: #e8f5e9; color: #388e3c; }
+.status-rejected { background: #ffebee; color: #d32f2f; }
+.status-processing { background: #e3f2fd; color: #1976d2; }
+.status-completed { background: #e8f5e9; color: #388e3c; }
+
+/* Toggle Switch */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.toggle-slider {
+  width: 44px;
+  height: 24px;
+  background: #ccc;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: #4caf50;
+}
+
+.toggle-switch input:checked + .toggle-slider::after {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-override {
+  background: #fff;
+  border: 1px solid #ff9800;
+  color: #ff9800;
+}
+
+.btn-comment {
+  background: #fff;
+  border: 1px solid #ddd;
+  position: relative;
+}
+
+.comment-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #f44336;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* 进度条 */
+.so-progress {
+  padding: 24px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.progress-track {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 20px 0;
+}
+
+/* 进度节点 */
+.progress-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 80px;
+}
+
+.progress-node .node-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.3s;
+}
+
+.progress-node .node-label {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}
+
+/* 节点形状 */
+.shape-circle .node-icon {
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  background: #fff;
+}
+
+.shape-square .node-icon {
+  border-radius: 4px;
+  border: 2px solid #ddd;
+  background: #fff;
+}
+
+.shape-diamond .node-icon {
+  transform: rotate(45deg);
+  border: 2px solid #ddd;
+  background: #fff;
+  width: 32px;
+  height: 32px;
+}
+
+/* 节点状态 */
+.status-pending .node-icon {
+  border-color: #ccc !important;
+  color: #999;
+  background: #f5f5f5 !important;
+}
+
+.status-in-progress .node-icon {
+  border-color: #ff9800 !important;
+  color: #ff9800;
+  background: #fff3e0 !important;
+}
+
+.status-completed .node-icon {
+  border-color: #4caf50 !important;
+  color: #fff;
+  background: #4caf50 !important;
+}
+
+.status-failed .node-icon {
+  border-color: #f44336 !important;
+  color: #fff;
+  background: #f44336 !important;
+}
+
+/* 连接线 */
+.progress-connection {
+  width: 40px;
+  height: 2px;
+  background: #ddd;
+  margin: 0 -2px;
+  position: relative;
+  top: -20px;
+}
+
+.progress-connection:has(+ .status-completed) {
+  background: #4caf50;
+}
+
+/* 回退按钮 */
+.rollback-section {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn-rollback {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-rollback:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+/* 并行任务Tab */
+.parallel-tabs {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.task-group {
+  margin-bottom: 16px;
+}
+
+.group-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.task-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.task-tab {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.task-tab.active {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+/* 表单区域 */
+.so-content {
+  padding: 24px;
+  min-height: 400px;
+}
+
+.form-loading {
+  text-align: center;
+  padding: 48px;
+  color: #999;
+}
+
+/* 动态表单 */
+.dynamic-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.form-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.permission-indicator {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 表单字段 */
+.form-field {
+  margin-bottom: 20px;
+}
+
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.required-mark {
+  color: #f44336;
+  margin-left: 4px;
+}
+
+.form-input,
+.form-select,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus,
+.form-select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+
+.form-input:disabled,
+.form-select:disabled,
+textarea:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* 权限标识 */
+.permission-badge {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.permission-badge[data-permission="EDIT"] {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.permission-badge[data-permission="APPROVE"] {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+/* 表单操作按钮 */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-action-complete {
+  background: #4caf50;
+  color: #fff;
+}
+
+.btn-action-claim {
+  background: #2196f3;
+  color: #fff;
+}
+
+.btn-action-delegate {
+  background: #ff9800;
+  color: #fff;
+}
+
+/* 表格 */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.form-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.form-table th,
+.form-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.form-table th {
+  background: #f5f5f5;
+  font-weight: 500;
+}
+
+/* 底部 */
+.so-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+}
+
+.footer-left {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 加载状态 */
+.loading {
+  text-align: center;
+  padding: 48px;
+  color: #666;
+}
+
+/* 错误状态 */
+.error {
+  text-align: center;
+  padding: 48px;
+  color: #f44336;
+}

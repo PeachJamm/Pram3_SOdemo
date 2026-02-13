@@ -1,0 +1,153 @@
+{
+  "components": [
+    {
+      "label": "Odoo 风格导航栏",
+      "type": "html",
+      "layout": { "row": "navbar", "columns": null },
+      "id": "Field_navbar",
+      "content": "<div style='background: linear-gradient(135deg, #714b67 0%, #5a3a52 100%); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; margin: -20px -20px 20px -20px;'><div style='display: flex; align-items: center; gap: 15px;'><span style='font-size: 20px;'>☰</span><span style='font-size: 18px; font-weight: 600;'>PRAM3 ERP</span><span style='color: rgba(255,255,255,0.6); margin: 0 10px;'>|</span><span>📋 订单验证</span></div><div style='display: flex; gap: 10px;'><span style='background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 13px;'>🟡 待验证</span></div></div>"
+    },
+    {
+      "label": "主布局容器",
+      "type": "group",
+      "layout": { "row": "main", "columns": null },
+      "id": "Field_main_container",
+      "components": [
+        {
+          "label": "左侧：订单信息卡片",
+          "type": "group",
+          "layout": { "row": "row_1", "columns": 4 },
+          "id": "Field_left_panel",
+          "components": [
+            {
+              "label": "订单信息",
+              "type": "text",
+              "layout": { "row": "row_1", "columns": null },
+              "id": "Field_order_info_card",
+              "text": "### 📋 订单信息\n\n**订单号:** {{orderNumber}}\n\n**客户:** {{customerName}}\n\n**等级:** {{customerTier}}\n\n**金额:** ¥{{totalAmount}}\n\n**行数:** {{lineCount}} 行",
+              "readonly": true
+            },
+            {
+              "label": "流程导航",
+              "type": "text",
+              "layout": { "row": "row_2", "columns": null },
+              "id": "Field_process_nav",
+              "text": "### 🔄 流程进度\n\n1. ✅ **订单创建**\n2. 🟡 **订单验证** ← 当前\n3. ⏳ 审批路由\n4. ⏳ 完成",
+              "readonly": true
+            }
+          ]
+        },
+        {
+          "label": "右侧：主要内容区",
+          "type": "group",
+          "layout": { "row": "row_1", "columns": 8 },
+          "id": "Field_right_panel",
+          "components": [
+            {
+              "label": "产品明细表格",
+              "type": "text",
+              "layout": { "row": "row_1", "columns": null },
+              "id": "Field_products_title",
+              "text": "### 🛒 订单明细",
+              "readonly": true
+            },
+            {
+              "label": "产品列表",
+              "type": "textarea",
+              "layout": { "row": "row_2", "columns": null },
+              "id": "Field_productLinesTable",
+              "key": "productLinesTable",
+              "readonly": true,
+              "properties": { "fontFamily": "monospace" },
+              "rows": 8
+            },
+            {
+              "label": "金额汇总",
+              "type": "group",
+              "layout": { "row": "row_3", "columns": null },
+              "id": "Field_amount_group",
+              "components": [
+                {
+                  "label": "小计",
+                  "type": "number",
+                  "layout": { "row": "row_1", "columns": 4 },
+                  "id": "Field_subtotal",
+                  "key": "subtotal",
+                  "readonly": true,
+                  "appearance": { "prefixAdorner": "¥" }
+                },
+                {
+                  "label": "税费 (6%)",
+                  "type": "number",
+                  "layout": { "row": "row_1", "columns": 4 },
+                  "id": "Field_taxAmount",
+                  "key": "taxAmount",
+                  "readonly": true,
+                  "appearance": { "prefixAdorner": "¥" }
+                },
+                {
+                  "label": "总计",
+                  "type": "number",
+                  "layout": { "row": "row_1", "columns": 4 },
+                  "id": "Field_totalAmount",
+                  "key": "totalAmount",
+                  "readonly": true,
+                  "appearance": { "prefixAdorner": "¥" }
+                }
+              ]
+            },
+            {
+              "label": "预计审批路径",
+              "type": "text",
+              "layout": { "row": "row_4", "columns": null },
+              "id": "Field_routing_info",
+              "text": "📊 **预计审批级别:** {{expectedApprovalLevel}}\n\n💰 **客户折扣:** {{discountRate}}%",
+              "readonly": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "底部操作栏",
+      "type": "html",
+      "layout": { "row": "footer", "columns": null },
+      "id": "Field_footer",
+      "content": "<div style='border-top: 2px solid #e9ecef; padding: 20px; margin: 20px -20px -20px -20px; background: #f8f9fa;'><div style='display: flex; justify-content: space-between; align-items: center;'><div style='color: #666; font-size: 14px;'>请仔细核对订单信息后选择验证结果</div><div style='display: flex; gap: 10px;'></div></div></div>"
+    },
+    {
+      "label": "验证结果 *",
+      "type": "radio",
+      "layout": { "row": "row_action", "columns": null },
+      "id": "Field_validationResult",
+      "key": "validationResult",
+      "validate": { "required": true },
+      "values": [
+        { "label": "✅ 验证通过 - 进入审批流程", "value": "PASS" },
+        { "label": "❌ 验证拒绝 - 退回修改", "value": "REJECT" }
+      ]
+    },
+    {
+      "label": "拒绝原因 *",
+      "type": "textarea",
+      "layout": { "row": "row_reject", "columns": null },
+      "id": "Field_validationComment",
+      "key": "validationComment",
+      "conditional": { "hide": "=validationResult != 'REJECT'" },
+      "validate": { "required": true }
+    },
+    {
+      "action": "submit",
+      "label": "提交验证",
+      "type": "button",
+      "layout": { "row": "row_submit", "columns": null },
+      "id": "Field_submit",
+      "conditional": { "hide": "=validationResult = null" }
+    }
+  ],
+  "type": "default",
+  "id": "order-validation",
+  "name": "订单验证",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0"
+}

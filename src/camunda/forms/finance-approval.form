@@ -1,0 +1,155 @@
+{
+  "components": [
+    {
+      "label": "Odoo 风格导航栏",
+      "type": "html",
+      "layout": { "row": "navbar", "columns": null },
+      "id": "Field_navbar",
+      "content": "<div style='background: linear-gradient(135deg, #714b67 0%, #5a3a52 100%); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; margin: -20px -20px 20px -20px;'><div style='display: flex; align-items: center; gap: 15px;'><span style='font-size: 20px;'>☰</span><span style='font-size: 18px; font-weight: 600;'>PRAM3 ERP</span><span style='color: rgba(255,255,255,0.6); margin: 0 10px;'>|</span><span>💰 财务审批</span></div><div style='display: flex; gap: 10px;'><span style='background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 13px;'>🔴 财务审批</span></div></div>"
+    },
+    {
+      "label": "主布局容器",
+      "type": "group",
+      "layout": { "row": "main", "columns": null },
+      "id": "Field_main_container",
+      "components": [
+        {
+          "label": "左侧：订单信息卡片",
+          "type": "group",
+          "layout": { "row": "row_1", "columns": 4 },
+          "id": "Field_left_panel",
+          "components": [
+            {
+              "label": "订单信息",
+              "type": "text",
+              "layout": { "row": "row_1", "columns": null },
+              "id": "Field_order_info_card",
+              "text": "### 📋 订单信息\n\n**订单号:** {{orderNumber}}\n\n**客户:** {{customerName}}\n\n**等级:** {{customerTier}}\n\n**金额:** ¥{{totalAmount}}\n\n**销售员:** {{createdBy}}",
+              "readonly": true
+            },
+            {
+              "label": "审批历史",
+              "type": "text",
+              "layout": { "row": "row_2", "columns": null },
+              "id": "Field_approval_history",
+              "text": "### 📜 审批历史\n\n1. ✅ 订单验证\n2. ✅ 销售经理审批\n3. 🟠 **财务审批** ← 当前",
+              "readonly": true
+            }
+          ]
+        },
+        {
+          "label": "右侧：主要内容区",
+          "type": "group",
+          "layout": { "row": "row_1", "columns": 8 },
+          "id": "Field_right_panel",
+          "components": [
+            {
+              "label": "产品明细",
+              "type": "text",
+              "layout": { "row": "row_1", "columns": null },
+              "id": "Field_products_title",
+              "text": "### 🛒 订单明细",
+              "readonly": true
+            },
+            {
+              "label": "产品列表",
+              "type": "textarea",
+              "layout": { "row": "row_2", "columns": null },
+              "id": "Field_productLinesTable",
+              "key": "productLinesTable",
+              "readonly": true,
+              "properties": { "fontFamily": "monospace" },
+              "rows": 8
+            },
+            {
+              "label": "财务审核",
+              "type": "group",
+              "layout": { "row": "row_3", "columns": null },
+              "id": "Field_finance_check",
+              "components": [
+                {
+                  "label": "小计",
+                  "type": "number",
+                  "layout": { "row": "row_1", "columns": 3 },
+                  "id": "Field_subtotal",
+                  "key": "subtotal",
+                  "readonly": true,
+                  "appearance": { "prefixAdorner": "¥" }
+                },
+                {
+                  "label": "税费 (6%)",
+                  "type": "number",
+                  "layout": { "row": "row_1", "columns": 3 },
+                  "id": "Field_taxAmount",
+                  "key": "taxAmount",
+                  "readonly": true,
+                  "appearance": { "prefixAdorner": "¥" }
+                },
+                {
+                  "label": "折扣",
+                  "type": "number",
+                  "layout": { "row": "row_1", "columns": 3 },
+                  "id": "Field_discountAmount",
+                  "key": "discountAmount",
+                  "readonly": true,
+                  "appearance": { "prefixAdorner": "¥" }
+                },
+                {
+                  "label": "应收总计",
+                  "type": "number",
+                  "layout": { "row": "row_1", "columns": 3 },
+                  "id": "Field_totalAmount",
+                  "key": "totalAmount",
+                  "readonly": true,
+                  "appearance": { "prefixAdorner": "¥", "style": { "color": "#714b67", "fontWeight": "bold" } }
+                }
+              ]
+            },
+            {
+              "label": "付款条件",
+              "type": "text",
+              "layout": { "row": "row_4", "columns": null },
+              "id": "Field_payment_terms",
+              "text": "💳 **建议付款条件:** Net 30\n\n📊 **客户信用:** 良好",
+              "readonly": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "财务审批决策 *",
+      "type": "radio",
+      "layout": { "row": "row_action", "columns": null },
+      "id": "Field_approvalDecision",
+      "key": "approvalDecision",
+      "validate": { "required": true },
+      "values": [
+        { "label": "✅ 批准 - 财务审核通过", "value": "APPROVE" },
+        { "label": "❌ 拒绝 - 财务风险，不予批准", "value": "REJECT" },
+        { "label": "🔄 退回 - 需要补充财务资料", "value": "RETURN" }
+      ]
+    },
+    {
+      "label": "审批意见",
+      "type": "textarea",
+      "layout": { "row": "row_comment", "columns": null },
+      "id": "Field_approvalComment",
+      "key": "approvalComment",
+      "description": "请输入财务审批意见"
+    },
+    {
+      "action": "submit",
+      "label": "提交审批",
+      "type": "button",
+      "layout": { "row": "row_submit", "columns": null },
+      "id": "Field_submit",
+      "conditional": { "hide": "=approvalDecision = null" }
+    }
+  ],
+  "type": "default",
+  "id": "finance-approval",
+  "name": "财务审批",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0"
+}

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建销售订单 - PRAM3 ERP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Odoo 风格顶部导航 */
+        .o_main_navbar {
+            background: linear-gradient(135deg, #714b67 0%, #5a3a52 100%);
+            color: white;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .o_main_navbar .o_brand {
+            font-size: 18px;
+            font-weight: 600;
+            margin-right: 30px;
+        }
+
+        .o_main_navbar .o_menu_toggle {
+            margin-right: 20px;
+            cursor: pointer;
+        }
+
+        /* 顶部操作栏 */
+        .o_control_panel {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .o_control_panel h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .o_cp_buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Odoo 风格按钮 */
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #714b67;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #5a3a52;
+        }
+
+        .btn-secondary {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            font-size: 12px;
+        }
+
+        .btn-icon {
+            padding: 6px 10px;
+        }
+
+        /* 主内容区 */
+        .o_content {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .o_form_sheet {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 30px;
+        }
+
+        /* 表单布局 */
+        .o_group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px 40px;
+            margin-bottom: 25px;
+        }
+
+        .o_field_widget {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .o_field_widget label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .o_field_widget input,
+        .o_field_widget select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .o_field_widget input:focus,
+        .o_field_widget select:focus {
+            outline: none;
+            border-color: #714b67;
+            box-shadow: 0 0 0 2px rgba(113, 75, 103, 0.1);
+        }
+
+        .o_field_widget input:read-only {
+            background-color: #f8f9fa;
+        }
+
+        /* 产品行表格 */
+        .o_product_lines {
+            margin-top: 30px;
+        }
+
+        .o_product_lines h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .o_product_lines_table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .o_product_lines_table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .o_product_lines_table td {
+            border-bottom: 1px solid #e9ecef;
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        .o_product_lines_table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .o_product_lines_table input,
+        .o_product_lines_table select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        .o_product_lines_table input:focus,
+        .o_product_lines_table select:focus {
+            outline: none;
+            border-color: #714b67;
+        }
+
+        .o_product_lines_table input[type="number"] {
+            text-align: right;
+        }
+
+        /* 汇总区域 */
+        .o_total_section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .o_total_table {
+            width: 350px;
+        }
+
+        .o_total_table td {
+            padding: 8px 10px;
+            font-size: 14px;
+        }
+
+        .o_total_table td:first-child {
+            text-align: right;
+            color: #666;
+        }
+
+        .o_total_table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .o_total_table .o_total_row {
+            font-size: 16px;
+            color: #714b67;
+            border-top: 2px solid #dee2e6;
+        }
+
+        .o_total_table .o_total_row td {
+            padding-top: 12px;
+            font-weight: 700;
+        }
+
+        /* 状态标签 */
+        .o_status_badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .o_status_draft {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        /* 加载状态 */
+        .o_loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .o_loading.show {
+            display: flex;
+        }
+
+        .o_spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #714b67;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 提示消息 */
+        .o_notification {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .o_notification.show {
+            display: block;
+        }
+
+        .o_notification.success {
+            background-color: #28a745;
+        }
+
+        .o_notification.error {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <nav class="o_main_navbar">
+        <span class="o_menu_toggle">☰</span>
+        <span class="o_brand">PRAM3 ERP</span>
+    </nav>
+
+    <!-- 控制面板 -->
+    <div class="o_control_panel">
+        <h1>📋 新建销售订单</h1>
+        <div class="o_cp_buttons">
+            <span class="o_status_badge o_status_draft">草稿</span>
+            <button class="btn btn-secondary" onclick="history.back()">放弃</button>
+            <button class="btn btn-primary" onclick="submitOrder()">
+                <span id="submitText">提交审批</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="o_content">
+        <div class="o_form_sheet">
+            <!-- 基本信息 -->
+            <div class="o_group">
+                <div class="o_field_widget">
+                    <label>客户 *</label>
+                    <select id="customerId" onchange="onCustomerChange()">
+                        <option value="">选择客户...</option>
+                    </select>
+                </div>
+                <div class="o_field_widget">
+                    <label>订单日期</label>
+                    <input type="date" id="orderDate" readonly>
+                </div>
+                <div class="o_field_widget">
+                    <label>价格表</label>
+                    <input type="text" id="priceListCode" readonly placeholder="自动选择">
+                </div>
+                <div class="o_field_widget">
+                    <label>销售员</label>
+                    <input type="text" id="salesperson" value="sales01" readonly>
+                </div>
+            </div>
+
+            <!-- 产品行 -->
+            <div class="o_product_lines">
+                <h3>
+                    订单明细
+                    <button class="btn btn-secondary btn-sm" onclick="addProductLine()">
+                        + 添加产品
+                    </button>
+                </h3>
+                <table class="o_product_lines_table">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%;">产品</th>
+                            <th style="width: 15%;">单价</th>
+                            <th style="width: 12%;">数量</th>
+                            <th style="width: 10%;">折扣%</th>
+                            <th style="width: 15%;">小计</th>
+                            <th style="width: 8%;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productLinesBody">
+                        <!-- 动态添加行 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 汇总 -->
+            <div class="o_total_section">
+                <table class="o_total_table">
+                    <tr>
+                        <td>小计:</td>
+                        <td id="subtotal">¥0.00</td>
+                    </tr>
+                    <tr>
+                        <td>税费 (6%):</td>
+                        <td id="taxAmount">¥0.00</td>
+                    </tr>
+                    <tr class="o_total_row">
+                        <td>总计:</td>
+                        <td id="grandTotal">¥0.00</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="o_loading" id="loading">
+        <div class="o_spinner"></div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="o_notification" id="notification"></div>
+
+    <script>
+        // 数据存储
+        let customers = [];
+        let products = [];
+        let productLines = [];
+        let lineCounter = 0;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+            await loadInitialData();
+            addProductLine(); // 数据加载完成后添加第一行
+        });
+
+        // 加载初始数据
+        async function loadInitialData() {
+            showLoading(true);
+            try {
+                const response = await fetch('/api/v1/orders/create-data');
+                const result = await response.json();
+                
+                if (result.success) {
+                    customers = result.data.customers;
+                    products = result.data.products;
+                    populateCustomerSelect();
+                    console.log('数据加载完成:', products.length, '个产品');
+                }
+            } catch (error) {
+                showNotification('加载数据失败: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 填充客户选择
+        function populateCustomerSelect() {
+            const select = document.getElementById('customerId');
+            customers.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id;
+                option.textContent = `${c.name} (${c.tier})`;
+                option.dataset.tier = c.tier;
+                select.appendChild(option);
+            });
+        }
+
+        // 客户变更
+        function onCustomerChange() {
+            const customerId = document.getElementById('customerId').value;
+            const customer = customers.find(c => c.id === customerId);
+            if (customer) {
+                document.getElementById('priceListCode').value = 
+                    customer.tier === 'VIP' ? 'VIP价格表' :
+                    customer.tier === 'GOLD' ? '金牌价格表' : '标准价格表';
+            }
+            recalculateAllLines();
+        }
+
+        // 添加产品行
+        function addProductLine() {
+            lineCounter++;
+            const tbody = document.getElementById('productLinesBody');
+            const tr = document.createElement('tr');
+            tr.id = `line_${lineCounter}`;
+            tr.innerHTML = `
+                <td>
+                    <select class="product-select" onchange="onProductChange(${lineCounter})">
+                        <option value="">选择产品...</option>
+                        ${products.map(p => `<option value="${p.id}" data-price="${p.unitPrice || 100}">${p.name} (${p.code})</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <input type="number" class="unit-price" id="price_${lineCounter}" 
+                           value="0" min="0" step="0.01" readonly 
+                           style="background-color: #f8f9fa; cursor: not-allowed;">
+                </td>
+                <td>
+                    <input type="number" id="qty_${lineCounter}" value="1" 
+                           min="1" onchange="recalculateLine(${lineCounter})">
+                </td>
+                <td>
+                    <input type="number" id="discount_${lineCounter}" value="0" 
+                           min="0" max="100" onchange="recalculateLine(${lineCounter})">
+                </td>
+                <td class="line-total" id="total_${lineCounter}">¥0.00</td>
+                <td>
+                    <button class="btn btn-danger btn-icon btn-sm" onclick="removeLine(${lineCounter})">×</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            productLines.push({ id: lineCounter, productId: '', quantity: 1, unitPrice: 0, discount: 0 });
+        }
+
+        // 产品选择变更
+        function onProductChange(lineId) {
+            const select = document.querySelector(`#line_${lineId} .product-select`);
+            const option = select.options[select.selectedIndex];
+            const price = option.dataset.price || 100;
+            document.getElementById(`price_${lineId}`).value = price;
+            
+            const line = productLines.find(l => l.id === lineId);
+            if (line) {
+                line.productId = select.value;
+                line.unitPrice = parseFloat(price);
+            }
+            recalculateLine(lineId);
+        }
+
+        // 重新计算单行
+        function recalculateLine(lineId) {
+            const line = productLines.find(l => l.id === lineId);
+            if (!line) return;
+
+            const quantity = parseFloat(document.getElementById(`qty_${lineId}`).value) || 0;
+            const unitPrice = parseFloat(document.getElementById(`price_${lineId}`).value) || 0;
+            const discount = parseFloat(document.getElementById(`discount_${lineId}`).value) || 0;
+
+            line.quantity = quantity;
+            line.unitPrice = unitPrice;
+            line.discount = discount;
+
+            const subtotal = quantity * unitPrice * (1 - discount / 100);
+            document.getElementById(`total_${lineId}`).textContent = `¥${subtotal.toFixed(2)}`;
+
+            recalculateTotals();
+        }
+
+        // 重新计算所有行
+        function recalculateAllLines() {
+            productLines.forEach(line => recalculateLine(line.id));
+        }
+
+        // 重新计算总计
+        function recalculateTotals() {
+            let subtotal = 0;
+            productLines.forEach(line => {
+                subtotal += line.quantity * line.unitPrice * (1 - line.discount / 100);
+            });
+
+            const taxRate = 0.06;
+            const taxAmount = subtotal * taxRate;
+            const grandTotal = subtotal + taxAmount;
+
+            document.getElementById('subtotal').textContent = `¥${subtotal.toFixed(2)}`;
+            document.getElementById('taxAmount').textContent = `¥${taxAmount.toFixed(2)}`;
+            document.getElementById('grandTotal').textContent = `¥${grandTotal.toFixed(2)}`;
+        }
+
+        // 删除行
+        function removeLine(lineId) {
+            const row = document.getElementById(`line_${lineId}`);
+            row.remove();
+            productLines = productLines.filter(l => l.id !== lineId);
+            recalculateTotals();
+        }
+
+        // 提交订单
+        async function submitOrder() {
+            const customerId = document.getElementById('customerId').value;
+            if (!customerId) {
+                showNotification('请选择客户', 'error');
+                return;
+            }
+
+            const validLines = productLines.filter(l => l.productId && l.quantity > 0);
+            if (validLines.length === 0) {
+                showNotification('请至少添加一个产品', 'error');
+                return;
+            }
+
+            const customer = customers.find(c => c.id === customerId);
+            const orderData = {
+                customerId: customerId,
+                customerName: customer?.name || '',
+                customerTier: customer?.tier || 'STANDARD',
+                items: validLines.map(l => ({
+                    productId: l.productId,
+                    quantity: l.quantity,
+                    unitPrice: l.unitPrice,
+                    discount: l.discount
+                })),
+                totalAmount: parseFloat(document.getElementById('grandTotal').textContent.replace('¥', ''))
+            };
+
+            showLoading(true);
+            try {
+                const response = await fetch('/api/v1/orders/create-and-start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showNotification(`订单创建成功！流程实例: ${result.data.processInstanceKey}`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/so-list';
+                    }, 2000);
+                } else {
+                    showNotification('创建失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showNotification('提交失败: ' + error.message, 'error');
+            }
+            showLoading(false);
+        }
+
+        // 显示/隐藏加载
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `o_notification ${type} show`;
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

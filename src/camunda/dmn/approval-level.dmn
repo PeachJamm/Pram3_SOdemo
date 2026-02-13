@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" 
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" 
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" 
+             id="approval-level-dmn" 
+             name="Approval Level Decision" 
+             namespace="http://pram3.io/dmn/approval-level">
+  
+  <decision id="determine-approval-level" name="确定审批级别">
+    <decisionTable id="approval-level-table" hitPolicy="FIRST">
+      <input id="input-amount" label="订单金额">
+        <inputExpression id="input-expression-amount" typeRef="double">
+          <text>amount</text>
+        </inputExpression>
+      </input>
+      
+      <input id="input-customer-tier" label="客户级别">
+        <inputExpression id="input-expression-tier" typeRef="string">
+          <text>customerTier</text>
+        </inputExpression>
+      </input>
+      
+      <output id="output-level" label="审批级别" name="approvalLevel" typeRef="string">
+        <outputValues>
+          <text>"SALES_MANAGER","FINANCE","DIRECTOR"</text>
+        </outputValues>
+      </output>
+      
+      <output id="output-assignee" label="审批人" name="assignee" typeRef="string" />
+      
+      <!-- 规则定义 -->
+      <rule id="rule-director-1">
+        <description>大额订单或VIP客户</description>
+        <inputEntry id="entry-director-1-amount">
+          <text>&gt; 50000</text>
+        </inputEntry>
+        <inputEntry id="entry-director-1-tier">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-director-1-level">
+          <text>"DIRECTOR"</text>
+        </outputEntry>
+        <outputEntry id="output-director-1-assignee">
+          <text>"director"</text>
+        </outputEntry>
+      </rule>
+      
+      <rule id="rule-director-2">
+        <description>VIP客户特殊审批</description>
+        <inputEntry id="entry-director-2-amount">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-director-2-tier">
+          <text>"VIP"</text>
+        </inputEntry>
+        <outputEntry id="output-director-2-level">
+          <text>"DIRECTOR"</text>
+        </outputEntry>
+        <outputEntry id="output-director-2-assignee">
+          <text>"director"</text>
+        </outputEntry>
+      </rule>
+      
+      <rule id="rule-finance">
+        <description>中额订单</description>
+        <inputEntry id="entry-finance-amount">
+          <text>[10000..50000]</text>
+        </inputEntry>
+        <inputEntry id="entry-finance-tier">
+          <text>"STANDARD","GOLD"</text>
+        </inputEntry>
+        <outputEntry id="output-finance-level">
+          <text>"FINANCE"</text>
+        </outputEntry>
+        <outputEntry id="output-finance-assignee">
+          <text>"finance"</text>
+        </outputEntry>
+      </rule>
+      
+      <rule id="rule-sales-manager">
+        <description>小额订单</description>
+        <inputEntry id="entry-sm-amount">
+          <text>&lt; 10000</text>
+        </inputEntry>
+        <inputEntry id="entry-sm-tier">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-sm-level">
+          <text>"SALES_MANAGER"</text>
+        </outputEntry>
+        <outputEntry id="output-sm-assignee">
+          <text>"salesManager"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNShape id="DMNShape_1" dmnElementRef="determine-approval-level">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
