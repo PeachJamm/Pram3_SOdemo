@@ -42,8 +42,22 @@ export declare class OrderService {
             name: string;
             code: string;
             category: string;
+            unitPrice: number;
         }[];
     }>;
     saveOrder(orderData: OrderCalculationResult, createdBy: string): Promise<string>;
+    queryOrders(params?: {
+        status?: string;
+        customerId?: string;
+        page?: number;
+        pageSize?: number;
+    }): Promise<{
+        orders: any[];
+        total: number;
+        page: number;
+        pageSize: number;
+        totalPages: number;
+    }>;
+    getOrderById(orderId: string): Promise<any | null>;
 }
 //# sourceMappingURL=order.service.d.ts.map

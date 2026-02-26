@@ -46,6 +46,7 @@ export async function initializeDatabase(dbPath: string = './pram3.db'): Promise
       '02_products.sql',
       '03_price_lists.sql',
       '04_customers.sql',
+      '05_role_permissions.sql',
     ];
 
     for (const seedFile of seedFiles) {

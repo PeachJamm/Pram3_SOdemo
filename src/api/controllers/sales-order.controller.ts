@@ -141,21 +141,19 @@ export class SalesOrderController {
 
       res.json({
         success: true,
-        data: orders.map((o: any) => ({
-          id: o.id,
-          orderNumber: o.order_number,
-          customer_id: o.customer_id,
-          customer_name: o.customer_name,
-          customerName: o.customer_name,
-          customer_tier: o.customer_tier,
-          grand_total: o.grand_total,
-          grandTotal: o.grand_total,
-          totalAmount: o.grand_total,
-          status: o.status,
-          created_at: o.created_at,
-          createdAt: o.created_at,
-        })),
-        metadata: {
+        data: {
+          orders: orders.map((o: any) => ({
+            id: o.id,
+            orderNumber: o.order_number,
+            customerId: o.customer_id,
+            customerName: o.customer_name,
+            customerTier: o.customer_tier,
+            totalAmount: o.grand_total,
+            grandTotal: o.grand_total,
+            status: o.status,
+            createdAt: o.created_at,
+            createdBy: o.created_by,
+          })),
           total,
           page,
           pageSize,

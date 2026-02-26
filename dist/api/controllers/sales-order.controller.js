@@ -8,12 +8,19 @@ exports.salesOrderController = exports.SalesOrderController = void 0;
 const express_1 = require("express");
 const order_orchestration_service_1 = require("../../orchestration/order-orchestration.service");
 const sales_order_service_1 = require("../../domains/sales/services/sales-order.service");
+const connection_1 = require("../../database/connection");
+const order_service_1 = require("../../database/services/order.service");
 /**
  * 销售订单API控制器
  */
 class SalesOrderController {
     constructor() {
         this.router = (0, express_1.Router)();
+        this.db = new connection_1.DatabaseConnection({
+            type: 'sqlite',
+            sqlite: { filename: './pram3.db' },
+        });
+        this.orderService = new order_service_1.OrderService(this.db);
         this.setupRoutes();
     }
     /**
@@ -68,32 +75,54 @@ class SalesOrderController {
      */
     async queryOrders(req, res, next) {
         try {
-            const params = {
-                status: req.query.status,
-                customerId: req.query.customerId,
-                startDate: req.query.startDate ? new Date(req.query.startDate) : undefined,
-                endDate: req.query.endDate ? new Date(req.query.endDate) : undefined,
-                minAmount: req.query.minAmount ? parseFloat(req.query.minAmount) : undefined,
-                maxAmount: req.query.maxAmount ? parseFloat(req.query.maxAmount) : undefined,
-                page: req.query.page ? parseInt(req.query.page) : 1,
-                pageSize: req.query.pageSize ? parseInt(req.query.pageSize) : 10,
-                sortBy: req.query.sortBy,
-                sortOrder: req.query.sortOrder,
-            };
-            const result = await order_orchestration_service_1.orderOrchestrationService.queryOrders(params);
-            if (result.success) {
-                res.json({
-                    success: true,
-                    data: result.data,
-                    metadata: result.metadata,
-                });
+            await this.db.connect();
+            const page = req.query.page ? parseInt(req.query.page) : 1;
+            const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
+            const offset = (page - 1) * pageSize;
+            // 从数据库直接查询订单
+            let sql = `
+        SELECT o.*, c.name as customer_name, c.tier as customer_tier, c.customer_code
+        FROM sales_orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        WHERE 1=1
+      `;
+            const params = [];
+            if (req.query.status) {
+                sql += ` AND o.status = ?`;
+                params.push(req.query.status);
             }
-            else {
-                res.status(400).json({
-                    success: false,
-                    error: result.error,
-                });
+            if (req.query.customerId) {
+                sql += ` AND o.customer_id = ?`;
+                params.push(req.query.customerId);
             }
+            // 获取总数
+            const countResult = await this.db.query(sql.replace('SELECT o.*, c.name as customer_name, c.tier as customer_tier, c.customer_code', 'SELECT COUNT(*) as count'), params);
+            const total = countResult[0]?.count || 0;
+            // 分页查询
+            sql += ` ORDER BY o.created_at DESC LIMIT ? OFFSET ?`;
+            params.push(pageSize, offset);
+            const orders = await this.db.query(sql, params);
+            res.json({
+                success: true,
+                data: {
+                    orders: orders.map((o) => ({
+                        id: o.id,
+                        orderNumber: o.order_number,
+                        customerId: o.customer_id,
+                        customerName: o.customer_name,
+                        customerTier: o.customer_tier,
+                        totalAmount: o.grand_total,
+                        grandTotal: o.grand_total,
+                        status: o.status,
+                        createdAt: o.created_at,
+                        createdBy: o.created_by,
+                    })),
+                    total,
+                    page,
+                    pageSize,
+                    totalPages: Math.ceil(total / pageSize),
+                },
+            });
         }
         catch (error) {
             next(error);
@@ -105,19 +134,19 @@ class SalesOrderController {
      */
     async getOrderById(req, res, next) {
         try {
+            await this.db.connect();
             const { id } = req.params;
-            const result = await order_orchestration_service_1.orderOrchestrationService.getOrderDetails(id);
-            if (result.success) {
+            const order = await this.orderService.getOrderById(id);
+            if (order) {
                 res.json({
                     success: true,
-                    data: result.data,
-                    metadata: result.metadata,
+                    data: order,
                 });
             }
             else {
                 res.status(404).json({
                     success: false,
-                    error: result.error,
+                    error: '订单不存在',
                 });
             }
         }

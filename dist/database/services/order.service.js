@@ -63,7 +63,7 @@ class OrderService {
     async getOrderCreateData() {
         const [customers, products] = await Promise.all([
             this.customerService.getCustomerSelectList(),
-            this.productService.getProductSelectList(),
+            this.productService.getProductsByPriceList('pl-001'), // 使用标准价格表
         ]);
         return {
             customers: customers.map(c => ({
@@ -77,6 +77,7 @@ class OrderService {
                 name: p.name,
                 code: p.product_code,
                 category: p.category,
+                unitPrice: p.unit_price || 0,
             })),
         };
     }
@@ -114,6 +115,110 @@ class OrderService {
             ]);
         }
         return orderId;
+    }
+    // 查询订单列表
+    async queryOrders(params = {}) {
+        const page = params.page || 1;
+        const pageSize = params.pageSize || 10;
+        const offset = (page - 1) * pageSize;
+        // 构建查询条件
+        let whereConditions = [];
+        let whereParams = [];
+        if (params.status) {
+            whereConditions.push('o.status = ?');
+            whereParams.push(params.status);
+        }
+        if (params.customerId) {
+            whereConditions.push('o.customer_id = ?');
+            whereParams.push(params.customerId);
+        }
+        const whereClause = whereConditions.length > 0
+            ? 'WHERE ' + whereConditions.join(' AND ')
+            : '';
+        // 查询总数
+        const countResult = await this.db.query(`SELECT COUNT(*) as total FROM sales_orders o ${whereClause}`, whereParams);
+        const total = countResult[0]?.total || 0;
+        // 查询订单列表
+        const orders = await this.db.query(`SELECT o.id, o.order_number, o.customer_id, o.total_amount, o.grand_total, 
+              o.status, o.created_at, o.created_by, o.process_instance_key,
+              c.name as customer_name, c.tier as customer_tier
+       FROM sales_orders o
+       LEFT JOIN customers c ON o.customer_id = c.id
+       ${whereClause}
+       ORDER BY o.created_at DESC
+       LIMIT ? OFFSET ?`, [...whereParams, pageSize, offset]);
+        return {
+            orders: orders.map(order => ({
+                id: order.id,
+                orderNumber: order.order_number,
+                customerId: order.customer_id,
+                customerName: order.customer_name,
+                customerTier: order.customer_tier,
+                totalAmount: order.total_amount,
+                grandTotal: order.grand_total,
+                status: order.status,
+                createdAt: order.created_at,
+                createdBy: order.created_by,
+                processInstanceKey: order.process_instance_key,
+            })),
+            total,
+            page,
+            pageSize,
+            totalPages: Math.ceil(total / pageSize),
+        };
+    }
+    // 获取订单详情
+    async getOrderById(orderId) {
+        const orders = await this.db.query(`SELECT o.id, o.order_number, o.customer_id, o.total_amount, o.grand_total,
+              o.discount_amount, o.tax_amount, o.status, o.created_at, o.updated_at,
+              o.created_by, o.process_instance_key, o.price_list_id,
+              c.name as customer_name, c.tier as customer_tier, c.email as customer_email,
+              c.phone as customer_phone, c.address as customer_address
+       FROM sales_orders o
+       LEFT JOIN customers c ON o.customer_id = c.id
+       WHERE o.id = ?`, [orderId]);
+        if (orders.length === 0) {
+            return null;
+        }
+        const order = orders[0];
+        // 查询订单明细
+        const items = await this.db.query(`SELECT oi.id, oi.product_id, oi.quantity, oi.unit_price, 
+              oi.original_unit_price, oi.discount_percent, oi.line_total,
+              p.name as product_name, p.product_code
+       FROM sales_order_items oi
+       LEFT JOIN products p ON oi.product_id = p.id
+       WHERE oi.sales_order_id = ?`, [orderId]);
+        return {
+            id: order.id,
+            orderNumber: order.order_number,
+            customerId: order.customer_id,
+            customerName: order.customer_name,
+            customerTier: order.customer_tier,
+            customerEmail: order.customer_email,
+            customerPhone: order.customer_phone,
+            customerAddress: order.customer_address,
+            priceListId: order.price_list_id,
+            totalAmount: order.total_amount,
+            discountAmount: order.discount_amount,
+            taxAmount: order.tax_amount,
+            grandTotal: order.grand_total,
+            status: order.status,
+            createdAt: order.created_at,
+            updatedAt: order.updated_at,
+            createdBy: order.created_by,
+            processInstanceKey: order.process_instance_key,
+            items: items.map((item) => ({
+                id: item.id,
+                productId: item.product_id,
+                productName: item.product_name,
+                productCode: item.product_code,
+                quantity: item.quantity,
+                unitPrice: item.unit_price,
+                originalUnitPrice: item.original_unit_price,
+                discountPercent: item.discount_percent,
+                lineTotal: item.line_total,
+            })),
+        };
     }
 }
 exports.OrderService = OrderService;

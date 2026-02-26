@@ -9,6 +9,14 @@ export declare class SOController {
     private camundaClient;
     constructor();
     /**
+     * 计算预期审批级别
+     */
+    private calculateApprovalLevel;
+    /**
+     * 计算折扣率
+     */
+    private calculateDiscountRate;
+    /**
      * 格式化产品明细为表单展示文本
      */
     private formatProductLinesForForm;

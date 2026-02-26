@@ -3,48 +3,16 @@
 // PRAM3 ERP Core - Main Application Entry Point
 // 主应用入口
 // =====================================================
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Pram3Application = void 0;
 const express_1 = __importDefault(require("express"));
-const path_1 = __importDefault(require("path"));
+const cors_1 = __importDefault(require("cors"));
 const sales_order_controller_1 = require("./api/controllers/sales-order.controller");
 const so_controller_1 = require("./api/controllers/so-controller");
+const form_controller_1 = require("./api/controllers/form-controller");
 const order_orchestration_service_1 = require("./orchestration/order-orchestration.service");
 /**
  * PRAM3 ERP核心应用
@@ -61,6 +29,13 @@ class Pram3Application {
      * 设置中间件
      */
     setupMiddleware() {
+        // CORS配置 - 允许前端访问
+        this.app.use((0, cors_1.default)({
+            origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+            credentials: true,
+        }));
         this.app.use(express_1.default.json());
         this.app.use(express_1.default.urlencoded({ extended: true }));
         // 请求日志中间件
@@ -83,16 +58,27 @@ class Pram3Application {
         });
         // API版本前缀
         const apiPrefix = '/api/v1';
-        this.app.use(apiPrefix, sales_order_controller_1.salesOrderController.router);
+        // 注意：soController 要在 salesOrderController 之前，避免 /orders/:id 覆盖 /orders/create-data
         this.app.use(apiPrefix, so_controller_1.soController.router);
-        // 静态文件服务 - SO 创建页面
-        this.app.use('/so-create', express_1.default.static(path_1.default.join(__dirname, 'frontend', 'so-create.html')));
-        this.app.use('/so-list', express_1.default.static(path_1.default.join(__dirname, 'frontend', 'so-list.html')));
+        this.app.use(apiPrefix, sales_order_controller_1.salesOrderController.router);
+        // 表单渲染 API（新权限体系）
+        // 包含：GET /api/forms/:taskId/render?userId=xxx
+        //       POST /api/forms/:taskId/submit
+        //       GET /api/forms/schema/:formKey
+        //       GET /api/forms/tasks/pending?userId=xxx
+        this.app.use('/api', form_controller_1.formController.router);
+        // 前端页面路由 - 重定向到新的 React 前端 (端口 5173)
+        this.app.get('/so-create', (req, res) => {
+            res.redirect('http://localhost:5173/so-create');
+        });
+        this.app.get('/so-list', (req, res) => {
+            res.redirect('http://localhost:5173/so-list');
+        });
         // Camunda集成端点
         this.app.post('/api/camunda/external-task/:taskId/complete', this.handleExternalTaskComplete.bind(this));
         this.app.get('/api/camunda/tasks/:processInstanceId', this.getActiveTasks.bind(this));
-        // 动态表单渲染端点
-        this.app.get('/api/forms/:formKey/render', this.renderForm.bind(this));
+        // 动态表单渲染端点（旧版，保留兼容）
+        this.app.get('/api/forms/:formKey/render-legacy', this.renderForm.bind(this));
     }
     /**
      * 错误处理
@@ -151,12 +137,10 @@ class Pram3Application {
                 orderData = result.data;
             }
         }
-        // 导入动态表单渲染器
-        const { renderForm } = await Promise.resolve().then(() => __importStar(require('./frontend/dynamic-forms/form-renderer')));
-        const renderResult = renderForm(formKey, orderData, {});
-        res.json({
-            success: true,
-            ...renderResult,
+        // 旧版表单渲染已弃用，使用 /api/forms/:taskId/render 端点
+        res.status(410).json({
+            success: false,
+            error: '此端点已弃用，请使用 GET /api/forms/:taskId/render?userId=xxx',
         });
     }
     /**
@@ -179,7 +163,10 @@ class Pram3Application {
 ║  - POST   /api/v1/orders/:id/submit  Submit for approval      ║
 ║  - POST   /api/v1/orders/:id/approve Process approval         ║
 ║  - POST   /api/v1/orders/:id/cancel  Cancel order             ║
-║  - GET    /api/forms/:key/render   Render dynamic form        ║
+║  - GET    /api/forms/:taskId/render?userId=xxx  Render form   ║
+║  - POST   /api/forms/:taskId/submit             Submit form   ║
+║  - GET    /api/forms/schema/:formKey            Form schema   ║
+║  - GET    /api/forms/tasks/pending?userId=xxx   Pending tasks ║
 ╚══════════════════════════════════════════════════════════════╝
 ║  Frontend Pages:                                              ║
 ║  - http://localhost:${this.port}/so-create    Create SO       ║

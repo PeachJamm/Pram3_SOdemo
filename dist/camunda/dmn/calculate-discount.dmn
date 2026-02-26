@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
+             xmlns:camunda="http://camunda.org/schema/1.0/dmn"
+             id="definitions_calculate_discount"
+             name="计算折扣"
+             namespace="http://pram3.io/dmn/discount">
+  <decision id="calculate-discount" name="计算折扣" camunda:versionTag="1">
+    <decisionTable id="DecisionTable_1" hitPolicy="FIRST">
+      <input id="Input_1" label="订单金额">
+        <inputExpression id="InputExpression_1" typeRef="double">
+          <text>orderAmount</text>
+        </inputExpression>
+      </input>
+      <input id="Input_2" label="客户类型">
+        <inputExpression id="InputExpression_2" typeRef="string">
+          <text>customerType</text>
+        </inputExpression>
+      </input>
+      <input id="Input_3" label="历史订单数">
+        <inputExpression id="InputExpression_3" typeRef="integer">
+          <text>orderHistoryCount</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="折扣率" name="discountRate" typeRef="double" />
+      <output id="Output_2" label="折扣金额" name="discountAmount" typeRef="double" />
+      <rule id="DecisionRule_1">
+        <inputEntry id="UnaryTests_1">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_2">
+          <text>"VIP"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_3">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1">
+          <text>0.15</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_2">
+          <text>orderAmount * 0.15</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_2">
+        <inputEntry id="UnaryTests_4">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_5">
+          <text>"ENTERPRISE"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_6">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_3">
+          <text>0.10</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_4">
+          <text>orderAmount * 0.10</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_3">
+        <inputEntry id="UnaryTests_7">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_8">
+          <text>"GOLD"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_9">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_5">
+          <text>0.05</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_6">
+          <text>orderAmount * 0.05</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_4">
+        <inputEntry id="UnaryTests_10">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_11">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_12">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_7">
+          <text>0.00</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_8">
+          <text>0.00</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNShape id="DMNShape_1" dmnElementRef="calculate-discount">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

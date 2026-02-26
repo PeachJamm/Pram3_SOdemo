@@ -102,6 +102,48 @@ class DatabaseConnection {
         const results = await this.query(sql, params);
         return results.length > 0 ? results[0] : null;
     }
+    // 开始事务
+    async beginTransaction() {
+        if (!this.db) {
+            throw new Error('Database not connected');
+        }
+        return new Promise((resolve, reject) => {
+            this.db.run('BEGIN TRANSACTION', (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
+    }
+    // 提交事务
+    async commit() {
+        if (!this.db) {
+            throw new Error('Database not connected');
+        }
+        return new Promise((resolve, reject) => {
+            this.db.run('COMMIT', (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
+    }
+    // 回滚事务
+    async rollback() {
+        if (!this.db) {
+            throw new Error('Database not connected');
+        }
+        return new Promise((resolve, reject) => {
+            this.db.run('ROLLBACK', (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
+    }
     // 关闭连接
     async close() {
         if (this.db) {

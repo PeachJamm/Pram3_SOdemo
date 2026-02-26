@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" 
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" 
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" 
+             id="discount-calculation-dmn" 
+             name="Discount Calculation" 
+             namespace="http://pram3.io/dmn/discount">
+  
+  <decision id="calculate-discount" name="计算折扣">
+    <decisionTable id="discount-table" hitPolicy="FIRST">
+      <input id="input-order-amount" label="订单金额">
+        <inputExpression id="input-expression-amount" typeRef="double">
+          <text>orderAmount</text>
+        </inputExpression>
+      </input>
+      
+      <input id="input-customer-type" label="客户类型">
+        <inputExpression id="input-expression-type" typeRef="string">
+          <text>customerType</text>
+        </inputExpression>
+      </input>
+      
+      <input id="input-order-history" label="历史订单数">
+        <inputExpression id="input-expression-history" typeRef="integer">
+          <text>orderHistoryCount</text>
+        </inputExpression>
+      </input>
+      
+      <output id="output-discount-rate" label="折扣率" name="discountRate" typeRef="double" />
+      <output id="output-discount-amount" label="折扣金额" name="discountAmount" typeRef="double" />
+      
+      <!-- 规则：VIP客户大额订单 -->
+      <rule id="rule-vip-large">
+        <description>VIP客户大额订单享受最高折扣</description>
+        <inputEntry id="entry-vip-large-amount">
+          <text>&gt;= 100000</text>
+        </inputEntry>
+        <inputEntry id="entry-vip-large-type">
+          <text>"VIP"</text>
+        </inputEntry>
+        <inputEntry id="entry-vip-large-history">
+          <text>&gt;= 10</text>
+        </inputEntry>
+        <outputEntry id="output-vip-large-rate">
+          <text>0.15</text>
+        </outputEntry>
+        <outputEntry id="output-vip-large-amount">
+          <text>orderAmount * 0.15</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 规则：VIP客户 -->
+      <rule id="rule-vip">
+        <description>VIP客户享受15%折扣</description>
+        <inputEntry id="entry-vip-amount">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-vip-type">
+          <text>"VIP"</text>
+        </inputEntry>
+        <inputEntry id="entry-vip-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-vip-rate">
+          <text>0.15</text>
+        </outputEntry>
+        <outputEntry id="output-vip-amount">
+          <text>orderAmount * 0.15</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 规则：企业客户大额 -->
+      <rule id="rule-enterprise-large">
+        <description>企业客户大额订单</description>
+        <inputEntry id="entry-enterprise-large-amount">
+          <text>&gt;= 50000</text>
+        </inputEntry>
+        <inputEntry id="entry-enterprise-large-type">
+          <text>"ENTERPRISE"</text>
+        </inputEntry>
+        <inputEntry id="entry-enterprise-large-history">
+          <text>&gt;= 5</text>
+        </inputEntry>
+        <outputEntry id="output-enterprise-large-rate">
+          <text>0.10</text>
+        </outputEntry>
+        <outputEntry id="output-enterprise-large-amount">
+          <text>orderAmount * 0.10</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 规则：企业客户 -->
+      <rule id="rule-enterprise">
+        <description>企业客户享受10%折扣</description>
+        <inputEntry id="entry-enterprise-amount">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-enterprise-type">
+          <text>"ENTERPRISE"</text>
+        </inputEntry>
+        <inputEntry id="entry-enterprise-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-enterprise-rate">
+          <text>0.10</text>
+        </outputEntry>
+        <outputEntry id="output-enterprise-amount">
+          <text>orderAmount * 0.10</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 规则：金牌客户大额 -->
+      <rule id="rule-gold-large">
+        <description>金牌客户大额订单</description>
+        <inputEntry id="entry-gold-large-amount">
+          <text>&gt;= 20000</text>
+        </inputEntry>
+        <inputEntry id="entry-gold-large-type">
+          <text>"GOLD"</text>
+        </inputEntry>
+        <inputEntry id="entry-gold-large-history">
+          <text>&gt;= 3</text>
+        </inputEntry>
+        <outputEntry id="output-gold-large-rate">
+          <text>0.08</text>
+        </outputEntry>
+        <outputEntry id="output-gold-large-amount">
+          <text>orderAmount * 0.08</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 规则：金牌客户 -->
+      <rule id="rule-gold">
+        <description>金牌客户享受5%折扣</description>
+        <inputEntry id="entry-gold-amount">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-gold-type">
+          <text>"GOLD"</text>
+        </inputEntry>
+        <inputEntry id="entry-gold-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-gold-rate">
+          <text>0.05</text>
+        </outputEntry>
+        <outputEntry id="output-gold-amount">
+          <text>orderAmount * 0.05</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 规则：普通客户大额 -->
+      <rule id="rule-standard-large">
+        <description>普通客户大额订单享受小额折扣</description>
+        <inputEntry id="entry-standard-large-amount">
+          <text>&gt;= 50000</text>
+        </inputEntry>
+        <inputEntry id="entry-standard-large-type">
+          <text>"STANDARD"</text>
+        </inputEntry>
+        <inputEntry id="entry-standard-large-history">
+          <text>&gt;= 5</text>
+        </inputEntry>
+        <outputEntry id="output-standard-large-rate">
+          <text>0.03</text>
+        </outputEntry>
+        <outputEntry id="output-standard-large-amount">
+          <text>orderAmount * 0.03</text>
+        </outputEntry>
+      </rule>
+      
+      <!-- 规则：无折扣 -->
+      <rule id="rule-no-discount">
+        <description>不满足折扣条件</description>
+        <inputEntry id="entry-no-discount-amount">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-no-discount-type">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="entry-no-discount-history">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="output-no-discount-rate">
+          <text>0.00</text>
+        </outputEntry>
+        <outputEntry id="output-no-discount-amount">
+          <text>0.00</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNShape id="DMNShape_1" dmnElementRef="calculate-discount">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

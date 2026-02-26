@@ -114,11 +114,11 @@ export class OrderService {
   // 获取订单创建所需的基础数据
   async getOrderCreateData(): Promise<{
     customers: { id: string; name: string; code: string; tier: string }[];
-    products: { id: string; name: string; code: string; category: string }[];
+    products: { id: string; name: string; code: string; category: string; unitPrice: number }[];
   }> {
     const [customers, products] = await Promise.all([
       this.customerService.getCustomerSelectList(),
-      this.productService.getProductSelectList(),
+      this.productService.getProductsByPriceList('pl-001'), // 使用标准价格表
     ]);
 
     return {
@@ -133,6 +133,7 @@ export class OrderService {
         name: p.name,
         code: p.product_code,
         category: p.category,
+        unitPrice: p.unit_price || 0,
       })),
     };
   }

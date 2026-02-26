@@ -5,8 +5,10 @@
 
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import cors from 'cors';
 import { salesOrderController } from './api/controllers/sales-order.controller';
 import { soController } from './api/controllers/so-controller';
+import { formController } from './api/controllers/form-controller';
 import { orderOrchestrationService } from './orchestration/order-orchestration.service';
 
 /**
@@ -28,6 +30,14 @@ class Pram3Application {
    * 设置中间件
    */
   private setupMiddleware(): void {
+    // CORS配置 - 允许前端访问
+    this.app.use(cors({
+      origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+      credentials: true,
+    }));
+
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     
@@ -56,17 +66,28 @@ class Pram3Application {
     // 注意：soController 要在 salesOrderController 之前，避免 /orders/:id 覆盖 /orders/create-data
     this.app.use(apiPrefix, soController.router);
     this.app.use(apiPrefix, salesOrderController.router);
+    
+    // 表单渲染 API（新权限体系）
+    // 包含：GET /api/forms/:taskId/render?userId=xxx
+    //       POST /api/forms/:taskId/submit
+    //       GET /api/forms/schema/:formKey
+    //       GET /api/forms/tasks/pending?userId=xxx
+    this.app.use('/api', formController.router);
 
-    // 静态文件服务 - SO 创建页面
-    this.app.use('/so-create', express.static(path.join(__dirname, 'frontend', 'so-create.html')));
-    this.app.use('/so-list', express.static(path.join(__dirname, 'frontend', 'so-list.html')));
+    // 前端页面路由 - 重定向到新的 React 前端 (端口 5173)
+    this.app.get('/so-create', (req, res) => {
+      res.redirect('http://localhost:5173/so-create');
+    });
+    this.app.get('/so-list', (req, res) => {
+      res.redirect('http://localhost:5173/so-list');
+    });
 
     // Camunda集成端点
     this.app.post('/api/camunda/external-task/:taskId/complete', this.handleExternalTaskComplete.bind(this));
     this.app.get('/api/camunda/tasks/:processInstanceId', this.getActiveTasks.bind(this));
     
-    // 动态表单渲染端点
-    this.app.get('/api/forms/:formKey/render', this.renderForm.bind(this));
+    // 动态表单渲染端点（旧版，保留兼容）
+    this.app.get('/api/forms/:formKey/render-legacy', this.renderForm.bind(this));
   }
 
   /**
@@ -138,13 +159,10 @@ class Pram3Application {
       }
     }
 
-    // 导入动态表单渲染器
-    const { renderForm } = await import('./frontend/dynamic-forms/form-renderer');
-    const renderResult = renderForm(formKey, orderData as Record<string, unknown>, {});
-
-    res.json({
-      success: true,
-      ...renderResult,
+    // 旧版表单渲染已弃用，使用 /api/forms/:taskId/render 端点
+    res.status(410).json({
+      success: false,
+      error: '此端点已弃用，请使用 GET /api/forms/:taskId/render?userId=xxx',
     });
   }
 
@@ -168,7 +186,10 @@ class Pram3Application {
 ║  - POST   /api/v1/orders/:id/submit  Submit for approval      ║
 ║  - POST   /api/v1/orders/:id/approve Process approval         ║
 ║  - POST   /api/v1/orders/:id/cancel  Cancel order             ║
-║  - GET    /api/forms/:key/render   Render dynamic form        ║
+║  - GET    /api/forms/:taskId/render?userId=xxx  Render form   ║
+║  - POST   /api/forms/:taskId/submit             Submit form   ║
+║  - GET    /api/forms/schema/:formKey            Form schema   ║
+║  - GET    /api/forms/tasks/pending?userId=xxx   Pending tasks ║
 ╚══════════════════════════════════════════════════════════════╝
 ║  Frontend Pages:                                              ║
 ║  - http://localhost:${this.port}/so-create    Create SO       ║

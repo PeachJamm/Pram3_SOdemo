@@ -13,6 +13,8 @@ export interface ApiResponse<T> {
  */
 export declare class SalesOrderController {
     router: Router;
+    private db;
+    private orderService;
     constructor();
     /**
      * 设置路由

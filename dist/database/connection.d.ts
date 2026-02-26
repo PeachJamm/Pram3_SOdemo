@@ -27,6 +27,9 @@ export declare class DatabaseConnection {
         insertId?: string;
     }>;
     queryOne<T = any>(sql: string, params?: any[]): Promise<T | null>;
+    beginTransaction(): Promise<void>;
+    commit(): Promise<void>;
+    rollback(): Promise<void>;
     close(): Promise<void>;
 }
 export declare const db: DatabaseConnection;

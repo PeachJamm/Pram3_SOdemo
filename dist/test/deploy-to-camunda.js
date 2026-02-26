@@ -144,6 +144,7 @@ class CamundaDeployer {
             return;
         }
         const formFiles = fs.readdirSync(formsDir).filter(f => f.endsWith('.form'));
+        const { ZBClient } = require('zeebe-node');
         for (const file of formFiles) {
             const formPath = path.join(formsDir, file);
             const formContent = fs.readFileSync(formPath, 'utf-8');
@@ -151,10 +152,26 @@ class CamundaDeployer {
             console.log(`  📄 ${file}`);
             console.log(`     - Form ID: ${formJson.id}`);
             console.log(`     - Name: ${formJson.name}`);
-            // 注意：Camunda 8.8 中表单通常与 BPMN 一起部署或通过 Tasklist API 部署
-            // 这里只是验证表单格式正确
+            // 使用 deployResource 部署表单到 Camunda 8
+            try {
+                const zbc = new ZBClient('localhost:26500', { useTLS: false });
+                const result = await zbc.deployResource({
+                    processFilename: formPath,
+                });
+                console.log(`  ✅ ${file} 部署成功`);
+                // 打印部署的表单信息
+                const form = result.deployments[0]?.form;
+                if (form) {
+                    console.log(`     - Form Key: ${form.formId}`);
+                    console.log(`     - Version: ${form.version}`);
+                }
+                await zbc.close();
+            }
+            catch (error) {
+                console.error(`  ❌ ${file} 部署失败: ${error}`);
+            }
         }
-        console.log(`  ✅ 共 ${formFiles.length} 个表单文件已验证`);
+        console.log(`  ✅ 共 ${formFiles.length} 个表单文件已部署`);
     }
 }
 // 运行部署

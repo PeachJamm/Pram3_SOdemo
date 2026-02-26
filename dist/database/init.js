@@ -76,6 +76,7 @@ async function initializeDatabase(dbPath = './pram3.db') {
             '02_products.sql',
             '03_price_lists.sql',
             '04_customers.sql',
+            '05_role_permissions.sql',
         ];
         for (const seedFile of seedFiles) {
             const seedPath = path.join(__dirname, 'seeds', seedFile);

@@ -27,6 +27,32 @@ class SOController {
         this.setupRoutes();
     }
     /**
+     * 计算预期审批级别
+     */
+    calculateApprovalLevel(totalAmount, customerTier) {
+        if (totalAmount > 50000 || customerTier === 'VIP') {
+            return '总监审批 (DIRECTOR)';
+        }
+        else if (totalAmount >= 10000) {
+            return '财务审批 (FINANCE)';
+        }
+        else {
+            return '销售经理审批 (SALES_MANAGER)';
+        }
+    }
+    /**
+     * 计算折扣率
+     */
+    calculateDiscountRate(customerTier) {
+        const rates = {
+            'VIP': 15,
+            'ENTERPRISE': 10,
+            'GOLD': 5,
+            'STANDARD': 0,
+        };
+        return rates[customerTier] || 0;
+    }
+    /**
      * 格式化产品明细为表单展示文本
      */
     formatProductLinesForForm(items) {
@@ -88,6 +114,7 @@ class SOController {
      * 创建订单并启动流程
      */
     async createAndStartProcess(req, res) {
+        let orderId = null;
         try {
             await this.db.connect();
             const requestData = req.body;
@@ -104,48 +131,95 @@ class SOController {
                 });
                 return;
             }
-            // 2. 保存订单到数据库
-            const orderId = await this.orderService.saveOrder(draft, 'sales01');
-            // 3. 准备流程变量（包含完整的 product lines 信息）
-            const processVariables = {
-                // 订单基本信息
-                orderId: orderId,
-                orderNumber: `SO-${Date.now()}`,
-                customerId: requestData.customerId,
-                customerName: requestData.customerName,
-                customerTier: requestData.customerTier,
-                totalAmount: draft.grandTotal,
-                subtotal: draft.subtotal,
-                taxAmount: draft.taxAmount,
-                // 产品明细 - 格式化文本（用于表单展示）
-                productLinesTable: this.formatProductLinesForForm(draft.items),
-                // 原始产品数据（JSON，供后续处理使用）
-                productLines: JSON.stringify(draft.items),
-                // 统计信息
-                lineCount: draft.items.length,
-                currency: 'CNY',
-                // 流程控制变量
-                createdBy: 'sales01',
-                createdAt: new Date().toISOString(),
-                orderHistoryCount: 0, // 用于 DMN 决策
-            };
-            // 4. 启动 Camunda 流程
-            const processInstance = await this.camundaClient.startProcess('sales-order-process', processVariables);
-            res.json({
-                success: true,
-                data: {
+            // 2. 开始数据库事务
+            await this.db.beginTransaction();
+            console.log('[Transaction] BEGIN - 开始创建订单');
+            try {
+                // 2.1 生成订单ID和订单号
+                orderId = `order-${Date.now()}`;
+                const orderNumber = `SO-${Date.now()}`;
+                // 2.2 插入订单主表（不含 processInstanceKey，状态为 PENDING）
+                await this.db.execute(`INSERT INTO sales_orders (id, order_number, customer_id, price_list_id, 
+            total_amount, tax_amount, grand_total, status, created_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+                    orderId,
+                    orderNumber,
+                    requestData.customerId,
+                    'plist-standard', // 默认使用标准价格表
+                    draft.subtotal,
+                    draft.taxAmount,
+                    draft.grandTotal,
+                    'PENDING', // 初始状态，等待流程启动
+                    'sales01',
+                ]);
+                // 2.3 插入订单明细
+                for (const item of draft.items) {
+                    await this.db.execute(`INSERT INTO sales_order_items (id, sales_order_id, product_id, quantity,
+              unit_price, original_unit_price, discount_percent, line_total)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
+                        `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                        orderId,
+                        item.productId,
+                        item.quantity,
+                        item.unitPrice,
+                        item.originalUnitPrice,
+                        item.discountPercent,
+                        item.lineTotal,
+                    ]);
+                }
+                console.log('[Transaction] 订单数据已插入，准备启动 Camunda 流程');
+                // 3. 准备流程变量
+                const expectedApprovalLevel = this.calculateApprovalLevel(draft.grandTotal, requestData.customerTier);
+                const processVariables = {
                     orderId: orderId,
-                    orderNumber: processVariables.orderNumber,
-                    processInstanceKey: processInstance.processInstanceKey,
+                    orderNumber: orderNumber,
+                    customerId: requestData.customerId,
+                    customerName: requestData.customerName,
+                    customerTier: requestData.customerTier,
                     totalAmount: draft.grandTotal,
-                },
-            });
+                    subtotal: draft.subtotal,
+                    taxAmount: draft.taxAmount,
+                    productLinesTable: this.formatProductLinesForForm(draft.items),
+                    productLines: JSON.stringify(draft.items),
+                    lineCount: draft.items.length,
+                    currency: 'CNY',
+                    expectedApprovalLevel: expectedApprovalLevel,
+                    discountRate: this.calculateDiscountRate(requestData.customerTier),
+                    createdBy: 'sales01',
+                    createdAt: new Date().toISOString(),
+                    orderHistoryCount: 0,
+                };
+                // 4. 启动 Camunda 流程（关键步骤，必须在事务中）
+                const processInstance = await this.camundaClient.startProcess('sales-order-process', processVariables);
+                console.log('[Transaction] Camunda 流程已启动:', processInstance.processInstanceKey);
+                // 5. 更新订单的 processInstanceKey 和状态
+                await this.db.execute(`UPDATE sales_orders SET process_instance_key = ?, status = ? WHERE id = ?`, [processInstance.processInstanceKey, 'PROCESSING', orderId]);
+                // 6. 提交事务
+                await this.db.commit();
+                console.log('[Transaction] COMMIT - 订单创建成功');
+                res.json({
+                    success: true,
+                    data: {
+                        orderId: orderId,
+                        orderNumber: orderNumber,
+                        processInstanceKey: processInstance.processInstanceKey,
+                        totalAmount: draft.grandTotal,
+                    },
+                });
+            }
+            catch (innerError) {
+                // 事务中发生错误，回滚
+                console.error('[Transaction] 事务失败，执行 ROLLBACK:', innerError);
+                await this.db.rollback();
+                throw innerError;
+            }
         }
         catch (error) {
             console.error('创建订单失败:', error);
             res.status(500).json({
                 success: false,
                 error: error instanceof Error ? error.message : '创建订单失败',
+                orderId: orderId, // 返回 orderId 方便排查
             });
         }
     }
